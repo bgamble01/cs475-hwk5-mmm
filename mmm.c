@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <unistd.h>
 #include <time.h>
 #include <math.h>
 #include <string.h>
@@ -11,8 +12,39 @@
  */
 void mmm_init()
 {
-	// TODO
+	int i;
+
+	 A = (double**)malloc(size*sizeof(double*));
+	for(i=0;i<size;i++){
+		A[i]=(double*)malloc(size*sizeof(double));
+	}
+	
+	B = (double**)malloc(size*sizeof(double*));
+	for(i=0;i<size;i++){
+		B[i]=(double*)malloc(size*sizeof(double));
+	}
+
+	C = (double**)malloc(size*sizeof(double*));
+	for(i=0;i<size;i++){
+		C[i]=(double*)malloc(size*sizeof(double));
+	}
+	
+	D = (double**)malloc(size*sizeof(double*));
+	for(i=0;i<size;i++){
+		D[i]=(double*)malloc(size*sizeof(double));
+	}  
+
+	int j;
+    srand(time(NULL));
+  	for(i = 0; i < size; i++){
+		for (j = 0; j < size; j++){
+			A[i][j]=(double)(rand() % 100);
+			B[i][j]=(double)(rand() % 100);
+		}
+			
+	} 
 }
+
 
 /**
  * Reset a given matrix to zeroes
@@ -20,7 +52,12 @@ void mmm_init()
  */
 void mmm_reset(double **matrix)
 {
-	// TODO
+	for	(int i = 0; i < size; i++){
+		for (int j = 0; j < size; j++){
+			matrix[i][j]=0;
+		}
+			
+	}
 }
 
 /**
@@ -28,7 +65,23 @@ void mmm_reset(double **matrix)
  */
 void mmm_freeup()
 {
-	// TODO
+	int i;
+	for	(i = 0; i < size; i++){
+		free(A[i]);
+	}
+	free(A);
+	for	(i = 0; i < size; i++){
+		free(B[i]);
+	}
+	free(B);
+	for	(i = 0; i < size; i++){
+		free(C[i]);
+	}
+	free(C);
+	for	(i = 0; i < size; i++){
+		free(D[i]);
+	}
+	free(D);
 }
 
 /**
@@ -36,7 +89,13 @@ void mmm_freeup()
  */
 void mmm_seq()
 {
-	// TODO - code to perform sequential MMM
+	for	(int i = 0; i < size; i++){
+		for (int j = 0; j < size; j++){
+			for(int k=0; k<size; k++){
+				C[i][j]+=(A[i][k])*(B[k][j]);
+			}
+		}		
+	}
 }
 
 /**
@@ -44,7 +103,18 @@ void mmm_seq()
  */
 void *mmm_par(void *args)
 {
-	// TODO - code to perform parallel MMM
+	struct parParams *params = (struct parParams *) args;
+	int s_row = params->s_row;
+	int f_row = params->f_row;
+
+	for	(int i = s_row; i < f_row+1; i++){
+		for (int j = 0; j < size; j++){
+			for(int k=0; k<size; k++){
+				D[i][j]+=(A[i][k])*(B[k][j]);
+			}
+		}		
+	}
+	return NULL;
 }
 
 /**
@@ -56,6 +126,31 @@ void *mmm_par(void *args)
  */
 double mmm_verify()
 {
-	// TODO
-	return -1;
+	double largest;
+	double diff;
+	for	(int i = 0; i < size; i++){
+		for (int j = 0; j < size; j++){
+			diff=abs((C[i][j])-(D[i][j]));
+			if(largest<diff){
+				largest=diff;
+			}
+		}		
+	}
+	return largest;
+}
+
+/**
+ * Prints a given matrix
+ * @param matrix pointer to a 2D array
+ */
+void printMatrix(double **matrix)
+{
+	double p;
+	for	(int i = 0; i < size; i++){
+		for (int j = 0; j < size; j++){
+			p = matrix[i][j];
+			printf("[%f]",p);
+		}
+		printf("\n");	
+	}
 }
